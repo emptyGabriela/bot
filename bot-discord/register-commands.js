@@ -60,8 +60,8 @@ const commands = [
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-const clientId = 'TU_CLIENT_ID';   // 👈 Reemplaza
-const guildId = 'TU_GUILD_ID';     // 👈 Reemplaza
+const clientId = 1363662944629428464;
+const guildId = 1353814992230813816;
 
 (async () => {
   try {
