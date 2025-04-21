@@ -23,6 +23,17 @@ const commands = [
         description: 'Nombre descriptivo del rol (opcional)',
         type: 3,
         required: false
+      },
+      {
+        name: 'grupo',
+        description: 'Grupo al que pertenece el rol',
+        type: 3,
+        required: true,
+        choices: [
+          { name: 'Universidades', value: 'universidades' },
+          { name: 'Divisiones', value: 'divisiones' },
+          { name: 'Tipo de usuario', value: 'tipo_usuario' }
+        ]
       }
     ]
   },
