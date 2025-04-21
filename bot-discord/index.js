@@ -19,7 +19,7 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-const canalId = 1363690163863294046;
+const canalId = '1363690163863294046';
 
 async function obtenerRolesDesdeBD() {
   const res = await pg.query('SELECT * FROM roles');
