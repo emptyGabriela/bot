@@ -1,58 +1,71 @@
-const { Client: PgClient } = require('pg');
+require('dotenv').config();
+const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js');
+const { Pool } = require('pg');
 
-const pg = new PgClient({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.MessageContent,
+  ],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-module.exports = async (interaction) => {
+const pg = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
+client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
+
   const { commandName, options } = interaction;
 
-  if (!pg._connected) {
-    await pg.connect();
-    pg._connected = true;
-  }
-
+  // 🔽 Aquí pega el bloque que te pasé antes 👇
   if (commandName === 'agregarrol') {
     const emoji = options.getString('emoji');
-    const roleId = options.getString('rol');
-    const name = options.getString('nombre') || '';
+    const name = options.getString('nombre') || 'Rol generado';
+
+    const guild = interaction.guild;
+
+    // Verifica si ya existe un rol con ese nombre
+    let rol = guild.roles.cache.find(r => r.name.toLowerCase() === name.toLowerCase());
+
+    if (!rol) {
+      try {
+        rol = await guild.roles.create({
+          name: name,
+          reason: 'Rol creado automáticamente por el bot',
+        });
+      } catch (err) {
+        console.error('❌ Error al crear rol:', err);
+        return interaction.reply('❌ No se pudo crear el rol automáticamente.');
+      }
+    }
+
+    const roleId = rol.id;
 
     try {
       await pg.query(
         'INSERT INTO roles (emoji, role_id, name) VALUES ($1, $2, $3) ON CONFLICT (emoji) DO UPDATE SET role_id = $2, name = $3',
         [emoji, roleId, name]
       );
+
       await interaction.reply(`✅ Rol agregado: ${emoji} ➝ <@&${roleId}>`);
     } catch (err) {
-      console.error(err);
-      await interaction.reply('❌ Error al agregar el rol.');
+      console.error('❌ Error al guardar en la base de datos:', err);
+      await interaction.reply('❌ No se pudo guardar el rol en la base de datos.');
     }
   }
 
-  if (commandName === 'eliminarrol') {
-    const emoji = options.getString('emoji');
+  // Aquí puedes seguir con eliminarrol, editarrol, etc.
+});
 
-    try {
-      await pg.query('DELETE FROM roles WHERE emoji = $1', [emoji]);
-      await interaction.reply(`🗑️ Emoji eliminado: ${emoji}`);
-    } catch (err) {
-      console.error(err);
-      await interaction.reply('❌ Error al eliminar el rol.');
-    }
-  }
+client.once('ready', () => {
+  console.log(`🤖 Bot listo como ${client.user.tag}`);
+});
 
-  if (commandName === 'editarrol') {
-    const emoji = options.getString('emoji');
-    const nuevoRol = options.getString('nuevo_rol');
-
-    try {
-      await pg.query('UPDATE roles SET role_id = $1 WHERE emoji = $2', [nuevoRol, emoji]);
-      await interaction.reply(`✏️ Emoji ${emoji} ahora apunta a <@&${nuevoRol}>`);
-    } catch (err) {
-      console.error(err);
-      await interaction.reply('❌ Error al editar el rol.');
-    }
-  }
-};
+client.login(process.env.TOKEN);
