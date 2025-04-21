@@ -13,10 +13,16 @@ const commands = [
         required: true
       },
       {
-        name: 'nombre',
-        description: 'Nombre del rol que se va a crear',
+        name: 'rol',
+        description: 'ID del rol en Discord',
         type: 3,
         required: true
+      },
+      {
+        name: 'nombre',
+        description: 'Nombre descriptivo del rol (opcional)',
+        type: 3,
+        required: false
       }
     ]
   },
@@ -43,8 +49,8 @@ const commands = [
         required: true
       },
       {
-        name: 'nuevo_nombre',
-        description: 'Nuevo nombre del rol',
+        name: 'nuevo_rol',
+        description: 'Nuevo ID del rol',
         type: 3,
         required: true
       }
@@ -53,6 +59,7 @@ const commands = [
 ];
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+
 const clientId = '1363662944629428464';
 const guildId = '1353814992230813816';
 
@@ -68,6 +75,3 @@ const guildId = '1353814992230813816';
     console.error('❌ Error al registrar comandos:', error);
   }
 })();
-
-
-
