@@ -13,12 +13,6 @@ const commands = [
         required: true
       },
       {
-        name: 'rol',
-        description: 'ID del rol en Discord',
-        type: 3,
-        required: true
-      },
-      {
         name: 'nombre',
         description: 'Nombre descriptivo del rol (opcional)',
         type: 3,

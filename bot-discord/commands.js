@@ -26,15 +26,34 @@ client.on('interactionCreate', async (interaction) => {
 
   if (commandName === 'agregarrol') {
     const emoji = options.getString('emoji');
-    const roleId = options.getString('rol');
     const name = options.getString('nombre') || 'Rol generado';
     const grupo = options.getString('grupo');
+
+    const guild = interaction.guild;
+
+    // Verificar si ya existe el rol
+    let rol = guild.roles.cache.find(r => r.name.toLowerCase() === name.toLowerCase());
+
+    if (!rol) {
+      try {
+        rol = await guild.roles.create({
+          name: name,
+          reason: 'Rol creado automáticamente por el bot',
+        });
+      } catch (err) {
+        console.error('❌ Error al crear rol:', err);
+        return interaction.reply('❌ No se pudo crear el rol automáticamente.');
+      }
+    }
+
+    const roleId = rol.id;
 
     try {
       await pg.query(
         'INSERT INTO roles (emoji, role_id, name, grupo) VALUES ($1, $2, $3, $4) ON CONFLICT (emoji) DO UPDATE SET role_id = $2, name = $3, grupo = $4',
         [emoji, roleId, name, grupo]
       );
+
       await interaction.reply(`✅ Rol agregado: ${emoji} ➝ <@&${roleId}> (${grupo})`);
     } catch (err) {
       console.error('❌ Error al guardar en la base de datos:', err);
